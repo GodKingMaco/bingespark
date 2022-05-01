@@ -5,7 +5,9 @@ class Database
     public $primary_keys = [
         "table_film" => "film_id",
         "table_actor" => "actor_id",
-        "table_film_actor" => "film_actor_id" 
+        "table_film_actor" => "film_actor_id",
+        "table_director" => "director_id",
+        "table_film_director" => "film_director_id"
     ];
 
     public function __construct()
@@ -46,12 +48,13 @@ class Database
         return false;
     }
 
-    private function fieldsToWhere($fields = []){
+    private function fieldsToWhere($fields = [])
+    {
         $str = ' WHERE ';
-        foreach($fields as $key=>$field){
-            if($key === 0){
+        foreach ($fields as $key => $field) {
+            if ($key === 0) {
                 $str .= $field . ' = ?';
-            }else{
+            } else {
                 $str .= ' AND ' . $field . ' = ?';
             }
         }
@@ -103,7 +106,10 @@ class Database
     public function insert($table_name, $fields = [], $params = [])
     {
         try {
+            error_log('Params Raw: ' . json_encode($params));
             $params = $this->sanitizeParams($params);
+            error_log('Params Count: ' . count($params));
+            error_log('Params: ' . json_encode($params));
             $query = "INSERT INTO {$table_name} (" . implode(',', $fields)  . ") VALUES(" . implode(',', array_fill(0, count($params) - 1, '?')) . "); \r\n";
             error_log($query);
             $stmt = $this->executeStatement($query, $params);
@@ -117,7 +123,40 @@ class Database
         return false;
     }
 
-    public function executeStatement($query = "", $params = [], $getId = false)
+    public function update($table_name, $target_id, $fields = [], $params = [])
+    {
+        try {
+            $namedParams = $params;
+            $params = $this->sanitizeParams($params);
+            
+            $query = "UPDATE $table_name SET "; 
+            $query = $this->paramsToUpdate($query, $fields, $params);
+            $query .= " WHERE " . $this->primary_keys[$table_name] . " = '$target_id'";
+            error_log('Update Query: ' . $query);
+
+            $stmt = $this->executeStatement($query, $namedParams);
+            // $result = $stmt->insert_id;
+            $stmt->close();
+
+            return $stmt;
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return false;
+    }
+
+    private function paramsToUpdate($query, $fields = [], $params = []){
+        foreach($fields as $key=>$field){
+            if($key === 0){
+                $query .= $field . " = ?";
+            }else{
+                $query .= ", $field = ?";
+            }
+        }
+        return $query;
+    }
+
+    public function executeStatement($query = "", $params = [])
     {
         try {
             $stmt = $this->connection->prepare($query);
@@ -130,6 +169,7 @@ class Database
                 error_log('Error: ' . strval($stmt->error));
             }
 
+            error_log('Params to bind: ' . json_encode($params));
             if ($params) {
                 $stmt->bind_param(...$params); // spread operator e.g. [$params[0], $params[1]...]
             }
