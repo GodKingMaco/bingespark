@@ -2,6 +2,11 @@
 class Database
 {
     protected $connection = null;
+    public $primary_keys = [
+        "table_film" => "film_id",
+        "table_actor" => "actor_id",
+        "table_film_actor" => "film_actor_id" 
+    ];
 
     public function __construct()
     {
@@ -18,13 +23,7 @@ class Database
 
     public function exists($table_name, $field, $value, $type = 's')
     {
-
-        $primary_keys = [
-            "table_film" => "film_id",
-            "table_actor" => "actor_id"
-        ];
-
-        $primary_key = $primary_keys[$table_name];
+        $primary_key = $this->primary_keys[$table_name];
 
         try {
             $value = $this->sanitizeParams([$value])[0];
@@ -35,6 +34,46 @@ class Database
 
             error_log('Check: ' . $query);
             error_log('Res: ' . json_encode($result));
+
+            if (is_array($result) && count($result) > 0 && $result[0][$primary_key]) {
+                return $result[0][$primary_key];
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
+        return false;
+    }
+
+    private function fieldsToWhere($fields = []){
+        $str = ' WHERE ';
+        foreach($fields as $key=>$field){
+            if($key === 0){
+                $str .= $field . ' = ?';
+            }else{
+                $str .= ' AND ' . $field . ' = ?';
+            }
+        }
+        error_log('Where string: ' . $str);
+        return $str;
+    }
+
+    public function existsMultiple($table_name, $fields = [], $values = [], $types = 's')
+    {
+
+        $primary_key = $this->primary_keys[$table_name];
+
+        try {
+            $values = $this->sanitizeParams($values);
+            $query = "SELECT $primary_key FROM $table_name" . $this->fieldsToWhere($fields);
+            error_log('Check M: ' . $query);
+            error_log('DEBUG: ' . json_encode(array_merge([$types], $values)));
+            $stmt = $this->executeStatement($query, array_merge([$types], $values));
+            $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+
+            error_log('Res M: ' . json_encode($result));
 
             if (is_array($result) && count($result) > 0 && $result[0][$primary_key]) {
                 return $result[0][$primary_key];
