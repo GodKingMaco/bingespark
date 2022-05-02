@@ -18,16 +18,8 @@ class Loader
         $csv = fopen('films_csv.csv', 'r') or die("can't open file");
         $index = 0;
         while ($csv_line = fgetcsv($csv)) {
-            list($title, $genre, $directors, $actors, $year, $runtime, $revenue) = $csv_line;
-            // echo 'Title: ' . $title . '<br />';
-            // echo 'Genre: ' . $genre . '<br />';
-            // echo 'Director: ' . $director . '<br />';
-            // echo 'Actors: ' . $actors . '<br />';
-            // echo 'Year: ' . $year . '<br />';
-            // echo 'Runtime: ' . $runtime . '<br />';
-            // echo 'Revenue: ' . $revenue . '<br />';
-
-            if ($index > 0) {
+            list($title, $genres, $directors, $actors, $year, $runtime, $revenue) = $csv_line;
+            if ($index > 0 && !!$title) {
 
                 $film_exists = $this->database->existsMultiple('table_film', ['film_title', 'film_year'], [$title, $year], 'si');
                 if ($film_exists) {
@@ -35,7 +27,6 @@ class Loader
 
                     // update existing with missmatched values
                     $this->database->update('table_film', $film_id, ['film_runtime', 'film_revenue'], [$runtime, $revenue]);
-
                 } else {
                     $film_id = $this->database->insert(
                         "table_film",
@@ -46,6 +37,7 @@ class Loader
 
                 $this->insertMultiple($actors, ['actor_name'], 's', $film_id, 'table_actor', 'table_film_actor', ['film_id', 'actor_id']);
                 $this->insertMultiple($directors, ['director_name'], 's', $film_id, 'table_director', 'table_film_director', ['film_id', 'director_id']);
+                $this->insertMultiple($genres, ['genre_name'], 's', $film_id, 'table_genre', 'table_film_genre', ['film_id', 'genre_id']);
             }
 
 

@@ -7,6 +7,12 @@ require_once PROJECT_ROOT_PATH . "/inc/config.php";
 // include the base controller file
 require_once PROJECT_ROOT_PATH . "/Controller/Api/BaseController.php";
  
-// include the use model file
+// include the model files
 require_once PROJECT_ROOT_PATH . "/Model/UserModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/FilmModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/DirectorModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/GenreModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/LikeModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/ReviewModel.php";
+
 ?>

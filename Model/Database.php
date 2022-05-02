@@ -7,7 +7,9 @@ class Database
         "table_actor" => "actor_id",
         "table_film_actor" => "film_actor_id",
         "table_director" => "director_id",
-        "table_film_director" => "film_director_id"
+        "table_film_director" => "film_director_id",
+        "table_genre" => "genre_id",
+        "table_film_genre" => "film_genre_id"
     ];
 
     public function __construct()
@@ -128,8 +130,8 @@ class Database
         try {
             $namedParams = $params;
             $params = $this->sanitizeParams($params);
-            
-            $query = "UPDATE $table_name SET "; 
+
+            $query = "UPDATE $table_name SET ";
             $query = $this->paramsToUpdate($query, $fields, $params);
             $query .= " WHERE " . $this->primary_keys[$table_name] . " = '$target_id'";
             error_log('Update Query: ' . $query);
@@ -145,11 +147,12 @@ class Database
         return false;
     }
 
-    private function paramsToUpdate($query, $fields = [], $params = []){
-        foreach($fields as $key=>$field){
-            if($key === 0){
+    private function paramsToUpdate($query, $fields = [], $params = [])
+    {
+        foreach ($fields as $key => $field) {
+            if ($key === 0) {
                 $query .= $field . " = ?";
-            }else{
+            } else {
                 $query .= ", $field = ?";
             }
         }

@@ -1,8 +1,8 @@
 <?php
-class UserController extends BaseController
+class GenreController extends BaseController
 {
     /**
-     * "/user/list" Endpoint - Get list of users
+     * "/film/list" Endpoint - Get list of directors
      */
     public function listAction()
     {
@@ -12,13 +12,13 @@ class UserController extends BaseController
  
         if (strtoupper($requestMethod) == 'GET') {
             try {
-                $userModel = new UserModel();
+                $userModel = new GenreModel();
  
                 $intLimit = 10;
                 $intLimit = $this->getAndCheckParam($arrQueryStringParams, 'limit') ?? $intLimit;
 
-                $arrUsers = $userModel->getUsers($intLimit);
-                $responseData = json_encode($arrUsers);
+                $arrGenres = $userModel->getGenre($intLimit);
+                $responseData = json_encode($arrGenres);
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage().'Something went wrong! Please contact support.';
                 $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
@@ -52,23 +52,18 @@ class UserController extends BaseController
  
         if (strtoupper($requestMethod) == 'POST') {
             try {
-                $userModel = new UserModel();
+                $genreModel = new GenreModel();
  
-                $user_username = $this->getAndCheckParam($arrQueryStringParams, 'user_username');
-                $user_email = $this->getAndCheckParam($arrQueryStringParams, 'user_email');
-                $user_password = $this->getAndCheckParam($arrQueryStringParams, 'user_password');
-                $user_forename = $this->getAndCheckParam($arrQueryStringParams, 'user_forename');
-                $user_surname = $this->getAndCheckParam($arrQueryStringParams, 'user_surname');
+                $genre_name = $this->getAndCheckParam($arrQueryStringParams, 'genre_name');
+ 
 
-                if(!$user_email || !$user_username || !$user_password || !$user_forename || !$user_surname){
+                if(!$genre_name){
                     $strErrorDesc = 'Something went wrong! Please contact support.';
                     $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
                 }
- 
-                $user_password = password_hash($user_password, PASSWORD_BCRYPT);
 
-                $user_id = $userModel->addUser($user_username, $user_email, $user_password, $user_forename, $user_surname);
-                $responseData = json_encode($user_id);
+                $genre_id = $genreModel->addGenre($genre_name);
+                $responseData = json_encode($genre_id);
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage().'Something went wrong! Please contact support.';
                 $strErrorHeader = 'HTTP/1.1 500 Internal Server Error';
@@ -90,4 +85,5 @@ class UserController extends BaseController
             );
         }
     }
+
 }

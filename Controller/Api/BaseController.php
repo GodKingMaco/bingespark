@@ -28,8 +28,10 @@ class BaseController
      * @return array
      */
     protected function getQueryStringParams()
-    {
-        return parse_str($_SERVER['QUERY_STRING'], $query);
+    {  
+        parse_str($_SERVER['QUERY_STRING'], $query);
+        error_log(json_encode($query));
+        return $query;
     }
  
     /**
@@ -50,6 +52,14 @@ class BaseController
  
         echo $data;
         exit;
+    }
+
+    protected function getAndCheckParam($params = [], $key){
+        if (isset($params[$key]) && $params[$key]) {
+            return $params[$key];
+        }else{
+            return NULL;
+        }
     }
 }
 
