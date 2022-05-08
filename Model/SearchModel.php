@@ -92,7 +92,7 @@ class SearchModel extends Database
             $query .= " ORDER BY " . $orderBy;
         }
 
-        $query .= ";";
+        $query .= " LIMIT 10 OFFSET 0;";
 
         $params = [""];
         if ($searchTerm) {

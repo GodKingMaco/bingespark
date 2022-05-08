@@ -9,7 +9,8 @@ class Database
         "table_director" => "director_id",
         "table_film_director" => "film_director_id",
         "table_genre" => "genre_id",
-        "table_film_genre" => "film_genre_id"
+        "table_film_genre" => "film_genre_id",
+        "table_likes" => "likes_id"
     ];
 
     public function __construct()

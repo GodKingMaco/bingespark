@@ -8,6 +8,11 @@ class UserModel extends Database
         return $this->select("SELECT * FROM table_user ORDER BY user_id ASC LIMIT ?", ["i", $limit]);
     }
 
+    public function getUser($username)
+    {
+        return $this->select("SELECT * FROM table_user WHERE user_username = ?", ["s", $username]);
+    }
+
     public function addUser($username, $email, $password, $forename, $surname)
     {
         return $this->insert(
