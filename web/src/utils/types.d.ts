@@ -15,7 +15,21 @@ type FilmWithDetails = Film & {
 };
 
 type User = {
-  id: number;
-  authenticated: boolean;
+  user_email: string;
+  user_forename: string;
+  user_id: number;
+  user_password: string;
+  user_surname: string;
+  user_username: string;
+};
+
+type LoginResponse = {
   token: string;
+  user: User;
+};
+
+type OutputMessage = {
+  status: "info" | "warning" | "success" | "error";
+  title: string;
+  message: string;
 };

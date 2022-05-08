@@ -3,6 +3,7 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -12,11 +13,13 @@ import App from "./Layout";
 import reportWebVitals from "./reportWebVitals";
 import { RestfulProvider, RestfulReactProviderProps } from "restful-react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Films from "./routes/films";
-import Home from "./routes/home";
 import Layout from "./Layout";
 import { ChakraProvider } from "@chakra-ui/react";
 import "antd/dist/antd.css";
+import { AuthWrapper } from "./utils/Components/AuthWrapper";
+import Films from "./routes/Films";
+import Home from "./routes/Home";
+import { Login } from "./routes/Login";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -27,10 +30,8 @@ export interface IAppContext {
     title: string;
     setTitle: (title: string) => void;
   };
-  user: {
-    user: User;
-    setUser: (user: User) => void;
-  };
+  auth: LoginResponse;
+  setAuth: (auth: LoginResponse) => void;
 }
 
 export const AppContext = createContext<IAppContext>({
@@ -38,44 +39,81 @@ export const AppContext = createContext<IAppContext>({
     title: "Home",
     setTitle: (title: string) => ({}),
   },
-  user: {
+  auth: {
+    token: "",
     user: {
-      id: 0,
-      authenticated: false,
-      token: "",
+      user_email: "",
+      user_forename: "",
+      user_id: 0,
+      user_password: "",
+      user_surname: "",
+      user_username: "",
     },
-    setUser: (user: User) => ({}),
   },
+  setAuth: (auth: LoginResponse) => ({}),
 });
 
 export const RestfulApp = () => {
-  // const [appContext, setAppContext] = useState({ metadata: { pageName: 'Home' } })
   const [appTitle, setAppTitle] = useState("Home");
-  const [userState, setUserState] = useState<User>({
-    id: 0,
-    authenticated: false,
-    token: "no token",
+  const [userState, setUserState] = useState<LoginResponse>({
+    token: "",
+    user: {
+      user_email: "",
+      user_forename: "",
+      user_id: 0,
+      user_password: "",
+      user_surname: "",
+      user_username: "",
+    },
   });
   const value: IAppContext = {
     title: {
       title: appTitle,
       setTitle: setAppTitle,
     },
-    user: {
-      user: userState,
-      setUser: setUserState,
-    },
+    auth: userState,
+    setAuth: setUserState,
   };
+
+  const checkSessionStorage = () => {
+    const session_id = localStorage.getItem("session_id");
+    const session_data = localStorage.getItem("session_data");
+
+    if (!!session_id && !!session_data) {
+      setUserState({ token: session_id, user: JSON.parse(session_data) });
+    }
+  };
+
+  const requestOptions = useMemo(() => {
+    return {
+      headers: { Authorization: "Bearer:" + userState.token },
+    };
+  }, [userState]);
+
+  useEffect(() => {
+    checkSessionStorage();
+    window.addEventListener("storage", checkSessionStorage);
+    return () => {
+      window.removeEventListener("storage", checkSessionStorage);
+    };
+  }, []);
+
   return (
     <BrowserRouter>
-      <RestfulProvider base="http://localhost:3000/api">
+      <RestfulProvider
+        base="https://cobrien38.webhosting6.eeecs.qub.ac.uk/index.php"
+        requestOptions={requestOptions}
+      >
         <ChakraProvider>
           <AppContext.Provider value={value}>
             <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="films" element={<Films />} />
-              </Routes>
+              <AuthWrapper>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="films" element={<Films />} />
+                  <Route path="login" element={<Login />} />
+                </Routes>
+              </AuthWrapper>
             </Layout>
           </AppContext.Provider>
         </ChakraProvider>

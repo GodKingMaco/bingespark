@@ -14,6 +14,8 @@ import {
   RangeSliderFilledTrack,
   RangeSliderThumb,
   RangeSliderTrack,
+  Button,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useGet } from "restful-react";
@@ -21,18 +23,21 @@ import { AppContext, IAppContext } from "..";
 import { Input } from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { Select } from "antd";
+import { userInfo } from "os";
 const { Option, OptGroup } = Select;
 
 export default function Films() {
   const {
     title: { setTitle },
-    user: { user, setUser },
+    auth: { token, user },
   }: IAppContext = useContext(AppContext);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchGenres, setSearchGenres] = useState<number[]>([]);
   const [searchDirectors, setSearchDirectors] = useState<number[]>([]);
   const [searchSortBy, setSearchSortBy] = useState("");
+  const [likeFilmId, setLikeId] = useState(0);
+  const toast = useToast();
 
   const queryParams = useMemo(
     () => ({
@@ -41,12 +46,29 @@ export default function Films() {
       directors: searchDirectors.join(","),
       orderBy: searchSortBy,
     }),
-    [searchTerm, searchGenres, searchDirectors, searchSortBy]
+    [searchTerm, searchGenres, searchDirectors, searchSortBy, likeFilmId]
   );
-  const { data: films, loading } = useGet({
+  const {
+    data: films,
+    loading,
+    refetch,
+  } = useGet({
     path: "search/film",
     queryParams,
     debounce: 300,
+  });
+
+  const {
+    data: likeResponse,
+    loading: likeLoading,
+    refetch: like,
+  } = useGet({
+    path: "feedback/like",
+    lazy: true,
+    queryParams: {
+      film_id: likeFilmId,
+      user_id: user.user_id,
+    },
   });
 
   const { data: genres } = useGet({
@@ -72,6 +94,26 @@ export default function Films() {
     setSearchSortBy(value);
   };
 
+  const handleLikeFilm = (film_id: number) => {
+    console.log(film_id);
+    setLikeId(film_id);
+  };
+
+  useEffect(() => {
+    if (likeFilmId != 0) {
+      like();
+      setLikeId(0);
+      toast({
+        title: "Film Liked.",
+        description: "You liked this film.",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
+      refetch();
+    }
+  }, [likeFilmId]);
+
   useEffect(() => {
     setTitle("Films");
   }, []);
@@ -88,12 +130,21 @@ export default function Films() {
         key={film.film_id}
       >
         <Flex>
-          <Circle bg="cyan.500" size="150px" flexDir={"column"}>
+          <Circle
+            bg={film.rating < 5 ? "lightsalmon" : "whatsapp.200"}
+            size="150px"
+            flexDir={"column"}
+          >
             <Text fontSize={"xxx-large"} color={"white"}>
               {Math.round(film.rating)}/10
             </Text>
           </Circle>
-          <Circle bg="cyan.500" size="150px" flexDir={"column"} marginLeft={1}>
+          <Circle
+            bg="linkedin.400"
+            size="150px"
+            flexDir={"column"}
+            marginLeft={1}
+          >
             <Text fontSize={"xxx-large"} color={"white"}>
               {Math.round(film.likes) ?? "Unrated"}
             </Text>
@@ -116,7 +167,10 @@ export default function Films() {
               casing={"uppercase"}
               fontWeight={"bold"}
             >
-              Runtime: {film.film_runtime ?? "Not Available"}
+              Runtime:
+              {film.film_runtime
+                ? film.film_runtime + " minutes"
+                : "Not Available"}
             </Text>
             <Text
               fontSize={"large"}
@@ -124,9 +178,30 @@ export default function Films() {
               casing={"uppercase"}
               fontWeight={"bold"}
             >
-              Revenue: {!!film.film_revenue ? film.film_revenue : 0}
+              Revenue: ${!!film.film_revenue ? film.film_revenue : 0}
+            </Text>
+            <Text>{film.actors.split(",").map((a: any) => " " + a + ",")}</Text>
+            <Text>
+              {film.directors.split(",").map((a: any) => " " + a + " ")}
             </Text>
           </Center>
+          <VStack
+            w={"10%"}
+            spacing={"4"}
+            justifyContent={"space-around"}
+            alignItems={"stretch"}
+          >
+            <Button
+              colorScheme="teal"
+              size="lg"
+              onClick={() => handleLikeFilm(film.film_id)}
+            >
+              Like
+            </Button>
+            <Button colorScheme="linkedin" size="lg">
+              Review
+            </Button>
+          </VStack>
         </Flex>
       </Box>
     );
@@ -200,7 +275,6 @@ export default function Films() {
           placeholder="Sort By"
           onChange={handleSortByChange}
         >
-          {/* DONT LEAVE LIKE THIS --- SQL INJECTION  */}
           <OptGroup label="Rating">
             <Option key={"rating DESC"}>Highest Rated</Option>
             <Option key="rating ASC">Lowest Rated</Option>
@@ -219,21 +293,6 @@ export default function Films() {
           </OptGroup>
         </Select>
       </Flex>
-      {JSON.stringify(user)}
-      <a
-        onClick={() =>
-          setUser({
-            ...user,
-            ...{
-              id: 312,
-              authenticated: true,
-              token: "ijdsaiodjsoaidjsoajdsa",
-            },
-          })
-        }
-      >
-        Login
-      </a>
       <VStack direction="column" spacing={4} w={"100%"}>
         {!!films && films.map((x: FilmWithDetails) => renderFilm(x))}
       </VStack>
