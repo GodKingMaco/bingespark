@@ -14,5 +14,5 @@ require_once PROJECT_ROOT_PATH . "/Model/DirectorModel.php";
 require_once PROJECT_ROOT_PATH . "/Model/GenreModel.php";
 require_once PROJECT_ROOT_PATH . "/Model/LikeModel.php";
 require_once PROJECT_ROOT_PATH . "/Model/ReviewModel.php";
-
-?>
+require_once PROJECT_ROOT_PATH . "/Model/ActorModel.php";
+require_once PROJECT_ROOT_PATH . "/Model/SearchModel.php";

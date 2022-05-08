@@ -3,9 +3,9 @@ require_once PROJECT_ROOT_PATH . "/Model/Database.php";
 
 class FilmModel extends Database
 {
-    public function getFilms($limit)
+    public function getFilms($limit, $skip = 0)
     {
-        return $this->select("SELECT * FROM table_film ORDER BY film_id ASC LIMIT ?", ["i", $limit]);
+        return $this->select("SELECT * FROM table_film ORDER BY film_id ASC LIMIT ? OFFSET ?", ["ii", $limit, $skip]);
     }
 
     public function addFilm($title, $year, $runtime, $revenue)

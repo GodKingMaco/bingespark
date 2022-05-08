@@ -3,9 +3,9 @@ require_once PROJECT_ROOT_PATH . "/Model/Database.php";
 
 class GenreModel extends Database
 {
-    public function getGenre($limit)
+    public function getGenre()
     {
-        return $this->select("SELECT * FROM table_genre ORDER BY genre_id ASC LIMIT ?", ["i", $limit]);
+        return $this->select("SELECT * FROM table_genre ORDER BY genre_name ASC");
     }
 
     public function addGenre($name)

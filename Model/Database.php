@@ -94,6 +94,7 @@ class Database
     public function select($query = "", $params = [])
     {
         try {
+            error_log('SELECT DEBUG: ' . $query);
             $stmt = $this->executeStatement($query, $params);
             $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $stmt->close();

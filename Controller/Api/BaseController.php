@@ -8,7 +8,7 @@ class BaseController
     {
         $this->sendOutput('', array('HTTP/1.1 404 Not Found'));
     }
- 
+
     /**
      * Get URI elements.
      * 
@@ -17,49 +17,53 @@ class BaseController
     protected function getUriSegments()
     {
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $uri = explode( '/', $uri );
- 
+        $uri = explode('/', $uri);
+
         return $uri;
     }
- 
+
     /**
      * Get querystring params.
      * 
      * @return array
      */
     protected function getQueryStringParams()
-    {  
+    {
         parse_str($_SERVER['QUERY_STRING'], $query);
         error_log(json_encode($query));
         return $query;
     }
- 
+
     /**
      * Send API output.
      *
      * @param mixed  $data
      * @param string $httpHeader
      */
-    protected function sendOutput($data, $httpHeaders=array())
+    protected function sendOutput($data, $httpHeaders = array())
     {
         header_remove('Set-Cookie');
- 
+
         if (is_array($httpHeaders) && count($httpHeaders)) {
             foreach ($httpHeaders as $httpHeader) {
                 header($httpHeader);
             }
         }
- 
+
         echo $data;
         exit;
     }
 
-    protected function getAndCheckParam($params = [], $key){
+    protected function getAndCheckParam($params = [], $key, $decode = false, $default = NULL)
+    {
         if (isset($params[$key]) && $params[$key]) {
-            return $params[$key];
-        }else{
-            return NULL;
+            if (!$decode) {
+                return $params[$key];
+            } else {
+                return urldecode($params[$key]);
+            }
+        } else {
+            return $default ?? NULL;
         }
     }
 }
-
