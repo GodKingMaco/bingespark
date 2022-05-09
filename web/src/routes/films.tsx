@@ -16,12 +16,16 @@ import {
   RangeSliderTrack,
   Button,
   useToast,
+  useRadioGroup,
+  IconButton,
+  Link,
+  Tooltip,
 } from "@chakra-ui/react";
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { useGet } from "restful-react";
+import { useGet, useMutate } from "restful-react";
 import { AppContext, IAppContext } from "..";
 import { Input } from "@chakra-ui/react";
-import { SearchIcon } from "@chakra-ui/icons";
+import { ArrowLeftIcon, ArrowRightIcon, SearchIcon } from "@chakra-ui/icons";
 import { Select } from "antd";
 import { userInfo } from "os";
 const { Option, OptGroup } = Select;
@@ -36,7 +40,7 @@ export default function Films() {
   const [searchGenres, setSearchGenres] = useState<number[]>([]);
   const [searchDirectors, setSearchDirectors] = useState<number[]>([]);
   const [searchSortBy, setSearchSortBy] = useState("");
-  const [likeFilmId, setLikeId] = useState(0);
+  const [pageNumber, setPageNumber] = useState(0);
   const toast = useToast();
 
   const queryParams = useMemo(
@@ -45,8 +49,9 @@ export default function Films() {
       genres: searchGenres.join(","),
       directors: searchDirectors.join(","),
       orderBy: searchSortBy,
+      page_number: pageNumber,
     }),
-    [searchTerm, searchGenres, searchDirectors, searchSortBy, likeFilmId]
+    [searchTerm, searchGenres, searchDirectors, searchSortBy, pageNumber]
   );
   const {
     data: films,
@@ -56,19 +61,6 @@ export default function Films() {
     path: "search/film",
     queryParams,
     debounce: 300,
-  });
-
-  const {
-    data: likeResponse,
-    loading: likeLoading,
-    refetch: like,
-  } = useGet({
-    path: "feedback/like",
-    lazy: true,
-    queryParams: {
-      film_id: likeFilmId,
-      user_id: user.user_id,
-    },
   });
 
   const { data: genres } = useGet({
@@ -94,31 +86,66 @@ export default function Films() {
     setSearchSortBy(value);
   };
 
-  const handleLikeFilm = (film_id: number) => {
-    console.log(film_id);
-    setLikeId(film_id);
-  };
-
-  useEffect(() => {
-    if (likeFilmId != 0) {
-      like();
-      setLikeId(0);
-      toast({
-        title: "Film Liked.",
-        description: "You liked this film.",
-        status: "success",
-        duration: 4000,
-        isClosable: true,
-      });
+  const handleLike = () => {
+    setTimeout(() => {
       refetch();
-    }
-  }, [likeFilmId]);
+    }, 500);
+  };
 
   useEffect(() => {
     setTitle("Films");
   }, []);
 
-  const renderFilm = (film: FilmWithDetails) => {
+  const RenderFilm = ({
+    film,
+    handleLike,
+  }: {
+    film: FilmWithDetails;
+    handleLike: () => void;
+  }) => {
+    const {
+      auth: { user },
+    }: IAppContext = useContext(AppContext);
+
+    const {
+      data: likeResponse,
+      loading: likeLoading,
+      refetch: like,
+    } = useGet({
+      path: "feedback/like",
+      lazy: true,
+      queryParams: {
+        film_id: film.film_id,
+        user_id: user.user_id,
+      },
+    });
+
+    const handleLikeFilm = () => {
+      like();
+      handleLike();
+    };
+
+    useEffect(() => {
+      if (!!likeResponse) {
+        toast({
+          title: "Film Liked",
+          description: "You have liked " + film.film_title,
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+      if (likeResponse != null && !likeResponse) {
+        toast({
+          title: "Film Not Liked",
+          description: "You have already liked " + film.film_title,
+          status: "warning",
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    }, [likeResponse]);
+
     return (
       <Box
         bg={"gray.100"}
@@ -191,13 +218,21 @@ export default function Films() {
             justifyContent={"space-around"}
             alignItems={"stretch"}
           >
-            <Button
-              colorScheme="teal"
-              size="lg"
-              onClick={() => handleLikeFilm(film.film_id)}
+            <Tooltip
+              hasArrow
+              label="You must login to like"
+              shouldWrapChildren
+              isDisabled={!!user.user_id}
             >
-              Like
-            </Button>
+              <Button
+                colorScheme="teal"
+                size="lg"
+                onClick={() => handleLikeFilm()}
+                disabled={!user.user_id}
+              >
+                Like
+              </Button>
+            </Tooltip>
             <Button colorScheme="linkedin" size="lg">
               Review
             </Button>
@@ -294,8 +329,29 @@ export default function Films() {
         </Select>
       </Flex>
       <VStack direction="column" spacing={4} w={"100%"}>
-        {!!films && films.map((x: FilmWithDetails) => renderFilm(x))}
+        {!!films ? (
+          films.map((x: FilmWithDetails) => (
+            <RenderFilm film={x} handleLike={handleLike} />
+          ))
+        ) : (
+          <Heading>No Results</Heading>
+        )}
       </VStack>
+      <Flex direction={"row"} marginTop={10}>
+        <IconButton
+          aria-label="Left"
+          icon={<ArrowLeftIcon />}
+          onClick={() =>
+            pageNumber > 0 ? setPageNumber(pageNumber - 1) : setPageNumber(0)
+          }
+        />
+        <IconButton
+          aria-label="Right"
+          icon={<ArrowRightIcon />}
+          onClick={() => setPageNumber(pageNumber + 1)}
+        />
+      </Flex>
+      <Link onClick={() => setPageNumber(0)}>Back to start</Link>
     </Flex>
   );
 }

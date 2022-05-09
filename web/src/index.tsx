@@ -101,7 +101,8 @@ export const RestfulApp = () => {
   return (
     <BrowserRouter>
       <RestfulProvider
-        base="https://cobrien38.webhosting6.eeecs.qub.ac.uk/index.php"
+        // base="https://cobrien38.webhosting6.eeecs.qub.ac.uk/index.php"
+        base="http://localhost:3000/api"
         requestOptions={requestOptions}
       >
         <ChakraProvider>
@@ -109,7 +110,7 @@ export const RestfulApp = () => {
             <Layout>
               <AuthWrapper>
                 <Routes>
-                  <Route path="/" element={<Home />} />
+                  <Route path="/index.html" element={<Films />} />
                   <Route path="films" element={<Films />} />
                   <Route path="login" element={<Login />} />
                 </Routes>

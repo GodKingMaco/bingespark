@@ -17,9 +17,12 @@ class SearchController extends BaseController
                 $genres = $this->getAndCheckParam($arrQueryStringParams, 'genres', true);
                 $directors = $this->getAndCheckParam($arrQueryStringParams, 'directors', true);
 
+                $page_size = 5;
+                $page_number = $this->getAndCheckParam($arrQueryStringParams, 'page_number', false, 0);
+
                 $orderBy = $this->getAndCheckParam($arrQueryStringParams, 'orderBy');
 
-                $arrResults = $searchModel->search($searchTerm, $year, $genres, $directors, $orderBy);
+                $arrResults = $searchModel->search($searchTerm, $year, $genres, $directors, $orderBy, $page_size, $page_number * $page_size);
                 $responseData = json_encode($arrResults);
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage() . 'Something went wrong! Please contact support.';

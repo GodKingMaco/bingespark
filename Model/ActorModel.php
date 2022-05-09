@@ -5,11 +5,12 @@ class ActorModel extends Database
 {
     public function getActors($limit)
     {
-        return $this->select("SELECT * FROM table_actor ORDER BY actor_id ASC LIMIT ?", ["i", $limit]);
+        return $this->select("SELECT * FROM table_actor ORDER BY actor_id");
     }
 
-    public function getActorsById($ids){
-        return $this->select("SELECT * FROM table_actor WHERE actor_id IN (". $ids .")");
+    public function getActorsById($ids)
+    {
+        return $this->select("SELECT * FROM table_actor WHERE actor_id IN (" . $ids . ")");
     }
 
     public function getActor($id)
@@ -25,5 +26,4 @@ class ActorModel extends Database
             ['s', $name]
         );
     }
-    
 }

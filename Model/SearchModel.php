@@ -3,8 +3,7 @@ require_once PROJECT_ROOT_PATH . "/Model/Database.php";
 
 class SearchModel extends Database
 {
-    // $genres, $directors, $forename, $surname
-    public function search($searchTerm, $year, $genres, $directors, $orderBy)
+    public function search($searchTerm, $year, $genres, $directors, $orderBy, $limit = 10, $offset = 0)
     {
         $query =
             "SELECT
@@ -92,7 +91,7 @@ class SearchModel extends Database
             $query .= " ORDER BY " . $orderBy;
         }
 
-        $query .= " LIMIT 10 OFFSET 0;";
+        $query .= " LIMIT " . $limit . " OFFSET " . $offset . ";";
 
         $params = [""];
         if ($searchTerm) {

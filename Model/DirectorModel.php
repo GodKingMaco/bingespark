@@ -5,7 +5,7 @@ class DirectorModel extends Database
 {
     public function getDirectors()
     {
-        return $this->select("SELECT * FROM table_director ORDER BY director_name ASC");
+        return $this->select("SELECT * FROM table_director ORDER BY director_name");
     }
 
     public function addDirector($name)
